@@ -14,4 +14,5 @@ export const loadConfig = async () => {
     })
     if (!GS.GAME_SETTINGS) GS.GAME_SETTINGS = GAME_SETTINGS;
     logger.info("✅ GAME_SETTINGS loaded successfully")
+    return GS.GAME_SETTINGS;
 }
