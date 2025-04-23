@@ -4,9 +4,10 @@ import type { Info, IPlayerDetails, IRoundResult } from "../interfaces";
 import { redisRead, redisWrite } from "../cache/redis";
 import { getUserIP } from "../middlewares/socketAuth";
 import { updateBalanceFromAccount } from "../utilities/v2Transactions";
-import { GAME_SETTINGS } from "../constants/constant";
+import { GS } from "../utilities/loadConfig";
 import { BetResults } from "../models/betResults";
 import { Settlements } from "../models/settlements";
+import { logEventAndEmitResponse } from "../utilities/herlperFunc";
 
 // bet format with event ->
 // PB:1745227259107:6-10,6-10,6-50,1-10,1-10,1-100
@@ -28,20 +29,30 @@ export const placeBetHandler = async (io: Namespace, socket: Socket, roundId: st
 
         const betsArr = betData.split(",");
         const userBet: Record<string, number> = {}
-
+        let isInvalidPayload = 0;
         betsArr.forEach(bet => {
             let [teamNum, betAmt] = bet.split("-");
             let tNo = Number(teamNum);
             let amt = Number(betAmt);
-            if (isNaN(tNo) || isNaN(amt) || tNo < 0 || tNo > 7 || amt % 10 !== 0) return socket.emit("betError", "invalid bet payload");
-            if (teamsInfo.a !== tNo && teamsInfo.b !== tNo) return socket.emit("betError", "invalid team number");
+            if (isNaN(tNo) || isNaN(amt) || tNo < 0 || tNo > 7 || amt % 10 !== 0) isInvalidPayload++;
+            if (teamsInfo.a !== tNo && teamsInfo.b !== tNo) isInvalidPayload++;
             if (userBet[tNo]) userBet[tNo] += amt;
             else userBet[tNo] = amt;
         })
-        console.log("userBet", userBet);
+
+        if (isInvalidPayload || Object.keys(userBet).length > 2) {
+            return logEventAndEmitResponse(socket, "bet", userBet, "Invalid Bet Payload");
+        }
 
         const totalBetAmount = Object.values(userBet).reduce((acc, val) => acc + val, 0);
         console.log("totalBetAmount", totalBetAmount);
+
+        if (totalBetAmount < Number(GS.GAME_SETTINGS.min_amt!) || Number(totalBetAmount) > Number(GS.GAME_SETTINGS.max_amt)) {
+            return logEventAndEmitResponse(socket, "bet", userBet, "Invalid Bet Amount",);
+        }
+        if (totalBetAmount > info.bl) {
+            return logEventAndEmitResponse(socket, "bet", userBet, "Insufficient Balance",);
+        }
 
         const matchId = `${curRndId.roundId}`;
         const userIp = getUserIP(socket)
@@ -88,10 +99,19 @@ export const settlementHandler = async (io: Namespace) => {
         if (!roundBets || !Object.keys(roundBets).length) return console.error("no bets found for roundId:", matchId);
 
         const roundResult: IRoundResult = gameLobby.getRoundResult();
-
+        console.log("ROUND_RESULT", JSON.stringify(roundResult))
         Object.keys(roundBets).forEach(userId => {
             let ttlWinAmt = 0
-            if (roundBets[userId][roundResult.winner]) ttlWinAmt += Number(roundBets[userId][roundResult.winner]) * GAME_SETTINGS.win_mult;
+            if (roundResult.winner === "TIE") {
+                const aBetAmt = Number(roundBets[userId][roundResult.a]) || 0;
+                const bBetAmt = Number(roundBets[userId][roundResult.b]) || 0;
+                const tie_mult = GS.GAME_SETTINGS.tie_mult!;
+                ttlWinAmt += (aBetAmt + bBetAmt) * tie_mult;
+            }
+            else if (roundBets[userId][roundResult.winner]) {
+                let win_mult = GS.GAME_SETTINGS.win_mult!;
+                ttlWinAmt += (Number(roundBets[userId][roundResult.winner]) || 0) * win_mult;
+            }
             roundBets[userId]["winning_amount"] = ttlWinAmt;
             console.log("ttlWinAmt", ttlWinAmt);
         })
@@ -132,8 +152,6 @@ export const settlementHandler = async (io: Namespace) => {
                 status: roundBets[userId]["winning_amount"] ? "WIN" : "LOSS"
             })
         });
-
-
 
         return await redisWrite.delDataFromRedis(matchId);
 

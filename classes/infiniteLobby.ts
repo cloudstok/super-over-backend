@@ -1,5 +1,5 @@
 import type { Namespace } from "socket.io";
-import { GAME_SETTINGS } from "../constants/constant";
+import { GS } from "../utilities/loadConfig";
 import type { ICardInfo, IRoundResult, ITeamInfo } from "../interfaces";
 import { settlementHandler } from "../services/handlers";
 
@@ -17,10 +17,15 @@ export class InfiniteGameLobby {
 
     constructor(io: Namespace) {
         this.io = io;
-        this.initLobby();
+        this.initGameLoop();
     }
 
-    async initLobby(): Promise<any> {
+    async initGameLoop(): Promise<any> {
+        await this.mySleep(2 * 1000)
+        await this.gameLoop()
+    }
+
+    async gameLoop(): Promise<any> {
 
         this.roundId = 1745227259107;   //must be Date.now();
         this.teamsInfo = this.getTeams()
@@ -48,7 +53,7 @@ export class InfiniteGameLobby {
         await settlementHandler(this.io)
         await this.sleepWithTimer(EStatusInterval.ed);
 
-        return this.initLobby();
+        return this.gameLoop();
     }
 
     private mySleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -77,7 +82,7 @@ export class InfiniteGameLobby {
         const { teamACards, teamBCards } = this.getTeamsCards();
         const teamAScore: number = this.calculateTotalRuns(teamACards);
         const teamBScore: number = this.calculateTotalRuns(teamBCards);
-        const winner = teamAScore > teamBScore ? a : b;
+        const winner = teamAScore === teamBScore ? "TIE" : (teamAScore > teamBScore ? a : b);
         return { a, b, teamA, teamB, teamACards, teamBCards, teamAScore, teamBScore, winner };
     }
     private getTeams(): ITeamInfo {
@@ -90,11 +95,11 @@ export class InfiniteGameLobby {
         // const b: number = [...set][1];
         const a: number = 6;  // this must be commented
         const b: number = 1;  // this must be commented
-        const teamA: string = GAME_SETTINGS.teams[a];
-        const teamB: string = GAME_SETTINGS.teams[b];
+        const teamA: string = GS.GAME_SETTINGS.teams![a];
+        const teamB: string = GS.GAME_SETTINGS.teams![b];
         return { teamA, a, teamB, b };
     }
-    private getCards(): number[] { return Array.from({ length: 6 }, () => Math.floor(Math.random() * Object.keys(GAME_SETTINGS.cardInfo).length)); }
+    private getCards(): number[] { return Array.from({ length: 6 }, () => Math.floor(Math.random() * Object.keys(GS.GAME_SETTINGS.cardInfo!).length)); }
     private getTeamsCards(): ({ teamACards: ICardInfo[], teamBCards: ICardInfo[] }) {
         const teamACards = this.getCards();
         const teamBCards = this.getCards();
@@ -107,9 +112,9 @@ export class InfiniteGameLobby {
             });
         });
         let aCards: ICardInfo[] = [];
-        teamACards.forEach(e => aCards.push(GAME_SETTINGS.cardInfo[e]));
+        teamACards.forEach(e => aCards.push(GS.GAME_SETTINGS.cardInfo![e]));
         let bCards: ICardInfo[] = [];
-        teamBCards.forEach(e => bCards.push(GAME_SETTINGS.cardInfo[e]));
+        teamBCards.forEach(e => bCards.push(GS.GAME_SETTINGS.cardInfo![e]));
 
         let kingCount = 0;
         [aCards, bCards].forEach(cardsArr => {
@@ -121,7 +126,6 @@ export class InfiniteGameLobby {
             })
             kingCount = 0;
         });
-
         return { teamACards: aCards, teamBCards: bCards };
     }
     private calculateTotalRuns(cards: ICardInfo[]): number {

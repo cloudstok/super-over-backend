@@ -27,6 +27,7 @@ export const settlement = `create table if not exists settlements (
 export const gameSettings = `CREATE TABLE IF NOT EXISTS game_settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     settings JSON NOT NULL,
-    created_at timestamp default current_timestamp,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );`

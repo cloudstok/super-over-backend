@@ -10,13 +10,17 @@ import { socketRouter } from "./routes/socketRoutes";
 import { InfiniteGameLobby } from "./classes/infiniteLobby";
 import { config } from "dotenv";
 import { initQueue } from "./utilities/amqp";
+import { loadConfig } from "./utilities/loadConfig";
+import { apiRouter } from "./routes/apiRoutes";
 
 config({ path: ".env" });
+export const logger = createLogger("SERVER", "plain");
+
 initQueue();
 createTables();
+loadConfig();
 
 const PORT = process.env.PORT || 3300;
-const logger = createLogger("SERVER", "plain");
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: "*" } });
@@ -27,6 +31,7 @@ const serverIo = io.of("/")
 
 export const gameLobby: InfiniteGameLobby = new InfiniteGameLobby(serverIo);
 
-app.use(cors({ origin: "*" }))
+app.use(cors({ origin: "*" }));
+app.use("/api/v1", apiRouter)
 
 httpServer.listen(PORT, () => logger.info(`server running on port ${PORT}`));

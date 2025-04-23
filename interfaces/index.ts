@@ -53,6 +53,7 @@ export interface IGameSettings {
     max_amt: number;
     max_co: number;
     win_mult: number;
+    tie_mult: number;
     cardInfo: Record<number, ICardInfo>;
     teams: Record<number, string>;
 }
@@ -72,7 +73,7 @@ export interface IRoundResult {
     teamBCards: ICardInfo[];
     teamAScore: number;
     teamBScore: number;
-    winner: number;
+    winner: number | "TIE";
 }
 
 export interface ITeamInfo { teamA: string, a: number, teamB: string, b: number }

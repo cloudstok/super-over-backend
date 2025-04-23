@@ -12,4 +12,9 @@ export class GameSettings {
         const [rows]: any = await pool.query(`SELECT * FROM game_settings WHERE id = ?`, [id]);
         return rows[0] || null;
     }
+
+    static async fetchActiveSettings() {
+        const [rows]: any = await pool.query(`SELECT settings FROM game_settings WHERE is_active = true`);
+        return rows;
+    }
 }

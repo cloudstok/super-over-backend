@@ -13,17 +13,13 @@ interface RequestData {
   [key: string]: any; // Adjust this based on your actual request structure
 }
 
-interface ResponseData {
-  [key: string]: any; // Adjust this based on your actual response structure
-}
-
 type EventType = "bet" | "game" | "cashout" | "partialCashout";
 
 export const logEventAndEmitResponse = (
-  req: RequestData,
-  res: ResponseData,
+  socket: Socket,
   event: EventType,
-  socket: Socket
+  req: RequestData,
+  res: string
 ): void => {
   const logData = JSON.stringify({ req, res });
 
