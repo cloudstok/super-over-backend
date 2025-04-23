@@ -3,7 +3,9 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "build": "bun build index.ts --outdir dist --target=bun"
+    "build": "bun build index.ts --outdir dist --target=bun",
+    "serve": "bun run dist/index.js",
+    "start": "bun run build && bun run serve"
   },
   "devDependencies": {
     "@types/bun": "latest"
