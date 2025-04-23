@@ -3,9 +3,9 @@ import { GS } from "../utilities/loadConfig";
 import type { ICardInfo, IRoundResult, ITeamInfo } from "../interfaces";
 import { settlementHandler } from "../services/handlers";
 
-enum EStatus { ss = "STARTED", pb = "PLACE_BET", cb = "COLLECT_BET", sc = "SHOW_CARDS", ed = "ENDED" };
-enum EStatusCode { ss = 1, pb = 2, cb = 3, sc = 4, ed = 5 };
-enum EStatusInterval { ss = 2, pb = 15, cb = 4, sc = 15, ed = 5 };
+const enum EStatus { ss = "STARTED", pb = "PLACE_BET", cb = "COLLECT_BET", sc = "SHOW_CARDS", ed = "ENDED" };
+const enum EStatusCode { ss = 1, pb = 2, cb = 3, sc = 4, ed = 5 };
+const enum EStatusInterval { ss = 2, pb = 15, cb = 4, sc = 15, ed = 5 };
 
 export class InfiniteGameLobby {
     private io: Namespace;
