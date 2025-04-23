@@ -27,7 +27,7 @@ export class InfiniteGameLobby {
 
     async gameLoop(): Promise<any> {
 
-        this.roundId = 1745227259107;   //must be Date.now();
+        this.roundId = Date.now();
         this.teamsInfo = this.getTeams()
         this.setCurrentStatus(EStatus.ss, EStatusCode.ss);
         this.emitStatus();
@@ -90,11 +90,8 @@ export class InfiniteGameLobby {
         while ([...set].length < 2) {
             set.add(Math.floor(Math.random() * 8))
         }
-        // this must be uncommented
-        // const a: number = [...set][0];
-        // const b: number = [...set][1];
-        const a: number = 6;  // this must be commented
-        const b: number = 1;  // this must be commented
+        const a: number = [...set][0];
+        const b: number = [...set][1];
         const teamA: string = GS.GAME_SETTINGS.teams![a];
         const teamB: string = GS.GAME_SETTINGS.teams![b];
         return { teamA, a, teamB, b };

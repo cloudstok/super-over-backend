@@ -130,7 +130,7 @@ export const settlementHandler = async (io: Namespace) => {
                 let plInfo: Info = await redisRead.getDataFromRedis(roundBets[userId].sid);
                 plInfo.bl += Number(roundBets[userId]["winning_amount"] || 0);
                 await redisWrite.setDataToRedis(plInfo.sid, plInfo);
-
+                io.to(plInfo.sid).emit("info", { urId: plInfo.urId, urNm: plInfo.urNm, bl: plInfo.bl, operatorId: plInfo.operatorId })
                 io.to(plInfo.sid).emit("message", { event: "settlement", winAmt: roundBets[userId]["winning_amount"] })
             }
             let aBetAmt = roundBets[userId][roundResult.a];
