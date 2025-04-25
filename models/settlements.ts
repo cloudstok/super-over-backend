@@ -32,7 +32,7 @@ export class Settlements {
     }
 
     static async findByMatchId(user_id: string, operator_id: string, match_id: string) {
-        const [rows]: any = await pool.query(`SELECT * FROM settlements WHERE match_id = ?`, [user_id, operator_id, match_id]);
+        const [rows]: any = await pool.query(`SELECT * FROM settlements WHERE match_id = ? AND user_id = ? AND operator_id = ?`, [match_id, user_id, operator_id]);
         return rows[0] || null;
     }
 }

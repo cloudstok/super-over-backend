@@ -24,7 +24,7 @@ export class BetResults {
         return rows[0] || null;
     }
 
-    static async find(user_id: string, operator_id: string, limit = 50) {
+    static async find(user_id: string, operator_id: string, limit = 10) {
         const [rows]: any = await pool.query(`SELECT * FROM bet_results WHERE user_id = ? AND operator_id = ? ORDER BY created_at DESC LIMIT ?`, [user_id, operator_id, limit]);
         return rows;
     }

@@ -7,7 +7,7 @@ import { GAME_SETTINGS } from "../constants/constant";
 export const socketRouter = async (io: Namespace, socket: Socket) => {
     try {
         console.log("socket connected with id:", socket.id);
-        const gameState = { ...gameLobby.getCurrentRoundId(), ...gameLobby.getCurrentStatus() }
+        const gameState = { ...gameLobby.getCurrentRoundId(), ...gameLobby.getCurrentStatus(), prevRoundResults: gameLobby.getPrevRoundResults() }
         setTimeout(() => {
             socket.emit("message", { event: "game_state", ...gameState, gameSettings: GS.GAME_SETTINGS || GAME_SETTINGS })
         }, 100);

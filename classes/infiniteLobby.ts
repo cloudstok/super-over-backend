@@ -14,6 +14,7 @@ export class InfiniteGameLobby {
     private roundId!: number;
     private teamsInfo!: ITeamInfo;
     private roundResult!: IRoundResult;
+    private prevRoundResults: IRoundResult[] = [];
 
     constructor(io: Namespace) {
         this.io = io;
@@ -37,6 +38,7 @@ export class InfiniteGameLobby {
         this.setCurrentStatus(EStatus.pb, EStatusCode.pb);
         this.emitStatus();
         this.roundResult = this.generateRoundResults();
+        this.storeRoundResults();
         await this.sleepWithTimer(EStatusInterval.pb);
 
         this.setCurrentStatus(EStatus.cb, EStatusCode.cb);
@@ -65,17 +67,21 @@ export class InfiniteGameLobby {
     }
 
     private setCurrentStatus(status: EStatus, statusCode: EStatusCode) { this.status = status; this.statusCode = statusCode; console.log(status, statusCode); }
+    private storeRoundResults() {
+        if (this.prevRoundResults.length >= 3) this.prevRoundResults.shift();
+        this.prevRoundResults.push(this.roundResult);
+    }
 
     private emitStatus() { return this.io.emit("message", { event: "game_status", status: this.status }); }
     private emitTeamsInfo() { return this.io.emit("message", { event: "teams_info", teamsInfo: this.teamsInfo }); }
     private emitRoundResults() { return this.io.emit("message", { event: "round_result", roundResult: this.roundResult }); }
     private emitIntervalSeconds(t: number) { return this.io.emit("message", `round:${this.roundId}:${this.statusCode}:${t}`); }
 
-
     public getCurrentRoundId(): { roundId: number } { return { roundId: this.roundId }; }
     public getCurrentStatus(): { status: EStatus, statusCode: EStatusCode } { return { status: this.status, statusCode: this.statusCode }; }
     public getTeamInfo(): ITeamInfo { return this.teamsInfo; }
     public getRoundResult(): IRoundResult { return this.roundResult; }
+    public getPrevRoundResults(): IRoundResult[] { return this.prevRoundResults; }
 
     private generateRoundResults(): IRoundResult {
         const { teamA, a, teamB, b } = this.teamsInfo;
