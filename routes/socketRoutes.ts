@@ -7,9 +7,9 @@ import { GAME_SETTINGS } from "../constants/constant";
 export const socketRouter = async (io: Namespace, socket: Socket) => {
     try {
         console.log("socket connected with id:", socket.id);
-        const gamState = { ...gameLobby.getCurrentRoundId(), ...gameLobby.getCurrentStatus() }
+        const gameState = { ...gameLobby.getCurrentRoundId(), ...gameLobby.getCurrentStatus() }
         setTimeout(() => {
-            socket.emit("message", { event: "game_state", ...gamState, gameSettings: GS.GAME_SETTINGS || GAME_SETTINGS })
+            socket.emit("message", { event: "game_state", ...gameState, gameSettings: GS.GAME_SETTINGS || GAME_SETTINGS })
         }, 100);
         socket.on("message", async (data: string) => {
             const [event, roundId, betData] = data.split(":");
