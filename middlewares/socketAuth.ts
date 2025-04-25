@@ -1,5 +1,4 @@
 import { redisWrite } from "../cache/redis";
-// import { GAME_SETTINGS } from "../constant/gameSettings";
 import type { Info, IUserDetailResponse } from "../interfaces";
 import { Socket } from "socket.io";
 
@@ -32,8 +31,7 @@ export const checkAuth = async (socket: Socket, next: Function) => {
 
         await redisWrite.setDataToRedis(socket.id, info);
         setTimeout(() => {
-            socket.emit("info", { urId: info.urId, urNm: info.urNm, bl: info.bl, operatorId: info.operatorId })
-            // socket.emit("message", { event: "game_settings", mults: GAME_SETTINGS.multipliers })
+            socket.emit("info", { urId: info.urId, urNm: info.urNm, bl: info.bl, operatorId: info.operatorId });
         }, 50);
         next();
     } catch (error: any) {
