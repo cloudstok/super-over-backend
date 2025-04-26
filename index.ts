@@ -32,6 +32,7 @@ const serverIo = io.of("/")
 export const gameLobby: InfiniteGameLobby = new InfiniteGameLobby(serverIo);
 
 app.use(cors({ origin: "*" }));
+app.get("/", (req: any, res: any) => res.status(200).send({ message: "Super-Over game backend says HI...✋", statusCode: 200 }))
 app.use("/api/v1", apiRouter)
 
 httpServer.listen(PORT, () => logger.info(`server running on port ${PORT}`));
