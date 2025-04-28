@@ -134,7 +134,7 @@ export class InfiniteGameLobby {
     private calculateTotalRuns(cards: ICardInfo[]): number {
         let totalRuns: number = 0;
         cards.forEach(card => {
-            if (card.card !== "K" && typeof card.runs === "number") totalRuns += card.runs;
+            if (card.card !== "K" && card.card !== "10" && typeof card.runs === "number") totalRuns += card.runs;
         })
         return totalRuns;
     }
