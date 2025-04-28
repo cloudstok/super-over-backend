@@ -62,6 +62,7 @@ export interface ICardInfo {
     card: string;
     type: string;
     runs: number | string;
+    fId: string;
 }
 
 export interface IRoundResult {
