@@ -12,28 +12,28 @@ export const GAME_SETTINGS: IGameSettings = {
         2: { card: "3", type: "heart", fId: "H3", runs: 3 },
         3: { card: "4", type: "heart", fId: "H4", runs: 4 },
         4: { card: "6", type: "heart", fId: "H6", runs: 6 },
-        5: { card: "10", type: "heart", fId: "H10", runs: 10 },
+        5: { card: "10", type: "heart", fId: "H10", runs: 0 },
         6: { card: "K", type: "heart", fId: "H13", runs: "out" },
         7: { card: "A", type: "clubs", fId: "C1", runs: 1 },
         8: { card: "2", type: "clubs", fId: "C2", runs: 2 },
         9: { card: "3", type: "clubs", fId: "C3", runs: 3 },
         10: { card: "4", type: "clubs", fId: "C4", runs: 4 },
         11: { card: "6", type: "clubs", fId: "C6", runs: 6 },
-        12: { card: "10", type: "clubs", fId: "C10", runs: 10 },
+        12: { card: "10", type: "clubs", fId: "C10", runs: 0 },
         13: { card: "K", type: "clubs", fId: "C13", runs: "out" },
         14: { card: "A", type: "diamond", fId: "D1", runs: 1 },
         15: { card: "2", type: "diamond", fId: "D2", runs: 2 },
         16: { card: "3", type: "diamond", fId: "D3", runs: 3 },
         17: { card: "4", type: "diamond", fId: "D4", runs: 4 },
         18: { card: "6", type: "diamond", fId: "D6", runs: 6 },
-        19: { card: "10", type: "diamond", fId: "D10", runs: 10 },
+        19: { card: "10", type: "diamond", fId: "D10", runs: 0 },
         20: { card: "K", type: "diamond", fId: "D13", runs: "out" },
         21: { card: "A", type: "spades", fId: "S1", runs: 1 },
         22: { card: "2", type: "spades", fId: "S2", runs: 2 },
         23: { card: "3", type: "spades", fId: "S3", runs: 3 },
         24: { card: "4", type: "spades", fId: "S4", runs: 4 },
         25: { card: "6", type: "spades", fId: "S6", runs: 6 },
-        26: { card: "10", type: "spades", fId: "S10", runs: 10 },
+        26: { card: "10", type: "spades", fId: "S10", runs: 0 },
         27: { card: "K", type: "spades", fId: "S13", runs: "out" },
     },
     teams: {
@@ -48,4 +48,4 @@ export const GAME_SETTINGS: IGameSettings = {
     }
 }
 
-// insert into super_over.game_settings (settings) values('{"max_amt":20000,"min_amt":10,"max_co":500000,"win_mult":1.98,"tie_mult":1,"cardInfo":{"0":{"card":"A","type":"heart","runs":1},"1":{"card":"2","type":"heart","runs":2},"2":{"card":"3","type":"heart","runs":3},"3":{"card":"4","type":"heart","runs":4},"4":{"card":"6","type":"heart","runs":6},"5":{"card":"10","type":"heart","runs":10},"6":{"card":"K","type":"heart","runs":"out"},"7":{"card":"A","type":"clubs","runs":1},"8":{"card":"2","type":"clubs","runs":2},"9":{"card":"3","type":"clubs","runs":3},"10":{"card":"4","type":"clubs","runs":4},"11":{"card":"6","type":"clubs","runs":6},"12":{"card":"10","type":"clubs","runs":10},"13":{"card":"K","type":"clubs","runs":"out"},"14":{"card":"A","type":"diamond","runs":1},"15":{"card":"2","type":"diamond","runs":2},"16":{"card":"3","type":"diamond","runs":3},"17":{"card":"4","type":"diamond","runs":4},"18":{"card":"6","type":"diamond","runs":6},"19":{"card":"10","type":"diamond","runs":10},"20":{"card":"K","type":"diamond","runs":"out"},"21":{"card":"A","type":"spades","runs":1},"22":{"card":"2","type":"spades","runs":2},"23":{"card":"3","type":"spades","runs":3},"24":{"card":"4","type":"spades","runs":4},"25":{"card":"6","type":"spades","runs":6},"26":{"card":"10","type":"spades","runs":10},"27":{"card":"K","type":"spades","runs":"out"}},"teams":{"0":"ENGLAND","1":"INDIA","2":"AUSTRALIA","3":"SOUTH AFRICA","4":"WEST INDIES","5":"NEW ZELAND","6":"SRI LANKA","7":"LUXEMBOURG"}}');
+// insert into super_over.game_settings (settings) values('{"max_amt":20000,"min_amt":10,"max_co":500000,"win_mult":1.98,"tie_mult":1,"cardInfo":{"0":{"card":"A","type":"heart","runs":1},"1":{"card":"2","type":"heart","runs":2},"2":{"card":"3","type":"heart","runs":3},"3":{"card":"4","type":"heart","runs":4},"4":{"card":"6","type":"heart","runs":6},"5":{"card":"10","type":"heart","runs":0},"6":{"card":"K","type":"heart","runs":"out"},"7":{"card":"A","type":"clubs","runs":1},"8":{"card":"2","type":"clubs","runs":2},"9":{"card":"3","type":"clubs","runs":3},"10":{"card":"4","type":"clubs","runs":4},"11":{"card":"6","type":"clubs","runs":6},"12":{"card":"10","type":"clubs","runs":0},"13":{"card":"K","type":"clubs","runs":"out"},"14":{"card":"A","type":"diamond","runs":1},"15":{"card":"2","type":"diamond","runs":2},"16":{"card":"3","type":"diamond","runs":3},"17":{"card":"4","type":"diamond","runs":4},"18":{"card":"6","type":"diamond","runs":6},"19":{"card":"10","type":"diamond","runs":0},"20":{"card":"K","type":"diamond","runs":"out"},"21":{"card":"A","type":"spades","runs":1},"22":{"card":"2","type":"spades","runs":2},"23":{"card":"3","type":"spades","runs":3},"24":{"card":"4","type":"spades","runs":4},"25":{"card":"6","type":"spades","runs":6},"26":{"card":"10","type":"spades","runs":0},"27":{"card":"K","type":"spades","runs":"out"}},"teams":{"0":"ENGLAND","1":"INDIA","2":"AUSTRALIA","3":"SOUTH AFRICA","4":"WEST INDIES","5":"NEW ZELAND","6":"SRI LANKA","7":"LUXEMBOURG"}}');
