@@ -70,12 +70,19 @@ export const placeBetHandler = async (io: Namespace, socket: Socket, roundId: st
 
         roundBets[`${info.urId}`] = { ...dbtTxn, ...info, ...userBet };
         await redisWrite.setDataToRedis(matchId, roundBets);
+        const userBetValues: Record<string, number> = {};
+        Object.keys(userBet).forEach((tno: string) => {
+            const teamName = GS.GAME_SETTINGS.teams?.[Number(tno)];
+            if (teamName) {
+                userBetValues[teamName] = userBet[tno];
+            }
+        });
         await BetResults.create({
             user_id: info.urId,
             match_id: matchId,
             operator_id: info.operatorId,
             bet_amt: totalBetAmount,
-            bet_values: userBet,
+            bet_values: userBetValues,
             team_info: teamsInfo
         })
 
@@ -136,9 +143,13 @@ export const settlementHandler = async (io: Namespace) => {
             let aBetAmt = roundBets[userId][roundResult.a];
             let bBetAmt = roundBets[userId][roundResult.b];
             let sumAB = Number(aBetAmt) + Number(bBetAmt);
+
+            const teamA = GS.GAME_SETTINGS.teams?.[Number(roundResult.a)];
+            const teamB = GS.GAME_SETTINGS.teams?.[Number(roundResult.b)];
+
             const betValues: Record<string, number> = {
-                [`${roundResult.a}`]: aBetAmt || 0,
-                [`${roundResult.b}`]: bBetAmt || 0,
+                [teamA ?? 'unknown_team_a']: aBetAmt || 0,
+                [teamB ?? 'unknown_team_b']: bBetAmt || 0,
             };
 
             await Settlements.create({
