@@ -8,6 +8,7 @@ import { GS } from "../utilities/loadConfig";
 import { BetResults } from "../models/betResults";
 import { Settlements } from "../models/settlements";
 import { logEventAndEmitResponse } from "../utilities/herlperFunc";
+import { GAME_SETTINGS } from "../constants/constant";
 
 // bet format with event ->
 // PB:1745227259107:6-10,6-10,6-50,1-10,1-10,1-100
@@ -119,8 +120,9 @@ export const settlementHandler = async (io: Namespace) => {
                 let win_mult = GS.GAME_SETTINGS.win_mult!;
                 ttlWinAmt += (Number(roundBets[userId][roundResult.winner]) || 0) * win_mult;
             }
-            roundBets[userId]["winning_amount"] = ttlWinAmt;
-            console.log("ttlWinAmt", ttlWinAmt);
+            const maxCo = Number(GS.GAME_SETTINGS.max_co) || GAME_SETTINGS.max_co;
+            roundBets[userId]["winning_amount"] = ttlWinAmt > maxCo ? maxCo : ttlWinAmt;
+            console.log("ttl win amt", roundBets[userId]["winning_amount"]);
         })
 
         Object.keys(roundBets).forEach(async (userId) => {
