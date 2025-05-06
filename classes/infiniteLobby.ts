@@ -86,10 +86,14 @@ export class InfiniteGameLobby {
     private generateRoundResults(): IRoundResult {
         const { teamA, a, teamB, b } = this.teamsInfo;
         const { teamACards, teamBCards } = this.getTeamsCards();
+
         const teamAScore: number = this.calculateTotalRuns(teamACards);
         const teamBScore: number = this.calculateTotalRuns(teamBCards);
+        const teamAWickets: number = this.calculateTotalWickets(teamACards);
+        const teamBWickets: number = this.calculateTotalWickets(teamBCards);
         const winner = teamAScore === teamBScore ? "TIE" : (teamAScore > teamBScore ? a : b);
-        return { a, b, teamA, teamB, teamACards, teamBCards, teamAScore, teamBScore, winner };
+
+        return { a, b, teamA, teamB, teamACards, teamBCards, teamAScore, teamBScore, teamAWickets, teamBWickets, winner };
     }
     private getTeams(): ITeamInfo {
         const set = new Set<number>();
@@ -137,5 +141,12 @@ export class InfiniteGameLobby {
             if (card.card !== "K" && card.card !== "10" && typeof card.runs === "number") totalRuns += card.runs;
         })
         return totalRuns;
+    }
+    private calculateTotalWickets(cards: ICardInfo[]): number {
+        let ttlWickets: number = 0;
+        cards.forEach(card => {
+            if (card.card === "K") ttlWickets++;;
+        })
+        return ttlWickets;
     }
 }

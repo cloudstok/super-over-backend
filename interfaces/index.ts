@@ -74,6 +74,8 @@ export interface IRoundResult {
     teamBCards: ICardInfo[];
     teamAScore: number;
     teamBScore: number;
+    teamAWickets: number;
+    teamBWickets: number;
     winner: number | "TIE";
 }
 

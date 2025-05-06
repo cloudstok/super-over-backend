@@ -28,5 +28,4 @@ export const socketRouter = async (io: Namespace, socket: Socket) => {
         console.error("error", error);
     }
 }
-
-// PB:{roundid}:{TEAM_A}-10,10,10,100,100|TEAM_B-50,50,50,1000
+// PB:1745227259107:1-10,1-10,1-10,6-10,6-10
