@@ -10,7 +10,7 @@ export class Settlements {
         win_amt: number;
         bet_values: Record<string, number>;
         win_result: IRoundResult;
-        status: "WIN" | "LOSS";
+        status: string;
     }) {
         const query = `
             INSERT INTO settlements (user_id, match_id, operator_id, bet_amt, win_amt, bet_values, win_result, status)

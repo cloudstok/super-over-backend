@@ -7,8 +7,12 @@ import { updateBalanceFromAccount } from "../utilities/v2Transactions";
 import { GS } from "../utilities/loadConfig";
 import { BetResults } from "../models/betResults";
 import { Settlements } from "../models/settlements";
-import { logEventAndEmitResponse } from "../utilities/herlperFunc";
+import { failedBetLogger, failedSettlementLogger, logEventAndEmitResponse } from "../utilities/herlperFunc";
 import { GAME_SETTINGS } from "../constants/constant";
+import { createLogger } from "../utilities/logger";
+
+const betlogger = createLogger("bets", "jsonl")
+const settlementlogger = createLogger("settlements", "jsonl")
 
 // bet format with event ->
 // PB:1745227259107:6-10,6-10,6-50,1-10,1-10,1-100
@@ -78,14 +82,16 @@ export const placeBetHandler = async (io: Namespace, socket: Socket, roundId: st
                 userBetValues[teamName] = userBet[tno];
             }
         });
-        await BetResults.create({
+        const betObject = {
             user_id: info.urId,
             match_id: matchId,
             operator_id: info.operatorId,
             bet_amt: totalBetAmount,
             bet_values: userBetValues,
             team_info: teamsInfo
-        })
+        }
+        betlogger.info(betObject);
+        await BetResults.create(betObject);
 
         console.log("place bet-----", roundBets, "-----place bet");
 
@@ -93,6 +99,7 @@ export const placeBetHandler = async (io: Namespace, socket: Socket, roundId: st
         return socket.emit("message", { event: "bet_result", message: "bet has been accepted successfully" });
 
     } catch (error: any) {
+        failedBetLogger.error(error, error.message)
         console.error("error during placing bet", error.message);
         return socket.emit("betError", { event: "bet_result", message: "unable to place bet", error: error.message });
     }
@@ -154,7 +161,7 @@ export const settlementHandler = async (io: Namespace) => {
                 [teamB ?? 'unknown_team_b']: bBetAmt || 0,
             };
 
-            await Settlements.create({
+            const stmtObj = {
                 user_id: userId,
                 match_id: matchId,
                 operator_id: roundBets[userId]?.operatorId,
@@ -163,12 +170,15 @@ export const settlementHandler = async (io: Namespace) => {
                 bet_values: betValues,
                 win_result: roundResult,
                 status: roundBets[userId]["winning_amount"] ? "WIN" : "LOSS"
-            })
+            }
+            settlementlogger.info(stmtObj);
+            await Settlements.create(stmtObj);
         });
 
         return await redisWrite.delDataFromRedis(matchId);
 
     } catch (error: any) {
+        failedSettlementLogger.error(error, error.message)
         console.error("error during settlement", error.message);
         return io.emit("betError", { event: "settlement", message: "unable to process settlements", error: error.message })
     }
