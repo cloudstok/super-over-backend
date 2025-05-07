@@ -66,6 +66,7 @@ export interface ICardInfo {
 }
 
 export interface IRoundResult {
+    roundId: number;
     a: number;
     b: number;
     teamA: string;

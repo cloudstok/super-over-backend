@@ -93,7 +93,7 @@ export class InfiniteGameLobby {
         const teamBWickets: number = this.calculateTotalWickets(teamBCards);
         const winner = teamAScore === teamBScore ? "TIE" : (teamAScore > teamBScore ? a : b);
 
-        return { a, b, teamA, teamB, teamACards, teamBCards, teamAScore, teamBScore, teamAWickets, teamBWickets, winner };
+        return { roundId: this.roundId, a, b, teamA, teamB, teamACards, teamBCards, teamAScore, teamBScore, teamAWickets, teamBWickets, winner };
     }
     private getTeams(): ITeamInfo {
         const set = new Set<number>();
