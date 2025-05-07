@@ -7,7 +7,6 @@ export const checkAuth = async (socket: Socket, next: Function) => {
         const token: string = socket.handshake.query?.token as string;
         const game_id: string = socket.handshake.query?.game_id as string;
         const userIP = getUserIP(socket);
-        console.log({ token, game_id, userIP });
         if (!token) {
             return next(new Error("Authentication error: Invalid token"));
         }
@@ -42,7 +41,6 @@ export const checkAuth = async (socket: Socket, next: Function) => {
 
 export const getUserDetail = async ({ token }: { token: string }): Promise<IUserDetailResponse> => {
     const url = `${process.env.service_base_url}/service/user/detail`;
-    console.log(url);
     try {
         if (!token) throw new Error("Invalid token");
         const resp = await fetch(url, {

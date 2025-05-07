@@ -70,7 +70,6 @@ export const sendRequestToAccounts = async (
 ): Promise<boolean> => {
   try {
     const url = process.env.service_base_url;
-    console.log(url);
     if (!url) throw new Error("Service base URL is not defined");
 
     const clientServerOptions = {
@@ -135,8 +134,6 @@ export const prepareDataForWebhook = async (
         obj.txn_type = 1;
         break;
     }
-
-    console.log("obj", obj);
     return obj;
   } catch (err) {
     console.error(`[ERR] while preparing data for webhook:`, err);

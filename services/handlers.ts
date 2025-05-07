@@ -19,7 +19,6 @@ const settlementlogger = createLogger("settlements", "jsonl")
 
 export const placeBetHandler = async (io: Namespace, socket: Socket, roundId: string | number, betData: string) => {
     try {
-
         const info: Info = await redisRead.getDataFromRedis(socket.id);
         if (!info) return socket.emit("betError", "player details not found in cache");
 
@@ -50,8 +49,6 @@ export const placeBetHandler = async (io: Namespace, socket: Socket, roundId: st
         }
 
         const totalBetAmount = Object.values(userBet).reduce((acc, val) => acc + val, 0);
-        console.log("totalBetAmount", totalBetAmount);
-
         if (totalBetAmount < Number(GS.GAME_SETTINGS.min_amt!) || Number(totalBetAmount) > Number(GS.GAME_SETTINGS.max_amt)) {
             return logEventAndEmitResponse(socket, "bet", userBet, "Invalid Bet Amount",);
         }
@@ -71,9 +68,9 @@ export const placeBetHandler = async (io: Namespace, socket: Socket, roundId: st
         await redisWrite.setDataToRedis(socket.id, info);
 
         let roundBets = await redisRead.getDataFromRedis(matchId);
-        if (!roundBets || !Array.isArray(roundBets)) roundBets = {};
+        if (!roundBets) roundBets = {};
 
-        roundBets[`${info.urId}`] = { ...dbtTxn, ...info, ...userBet };
+        roundBets[info.urId] = { ...dbtTxn, ...info, ...userBet };
         await redisWrite.setDataToRedis(matchId, roundBets);
         const userBetValues: Record<string, number> = {};
         Object.keys(userBet).forEach((tno: string) => {
@@ -90,16 +87,13 @@ export const placeBetHandler = async (io: Namespace, socket: Socket, roundId: st
             bet_values: userBetValues,
             team_info: teamsInfo
         }
-        betlogger.info(betObject);
+        betlogger.info(JSON.stringify(betObject));
         await BetResults.create(betObject);
-
-        console.log("place bet-----", roundBets, "-----place bet");
-
         socket.emit("info", { urId: info.urId, urNm: info.urNm, bl: info.bl, operatorId: info.operatorId });
         return socket.emit("message", { event: "bet_result", message: "bet has been accepted successfully" });
 
     } catch (error: any) {
-        failedBetLogger.error(error, error.message)
+        failedBetLogger.error(JSON.stringify(error));
         console.error("error during placing bet", error.message);
         return socket.emit("betError", { event: "bet_result", message: "unable to place bet", error: error.message });
     }
@@ -109,12 +103,10 @@ export const settlementHandler = async (io: Namespace) => {
     try {
         const curRndId = gameLobby.getCurrentRoundId();
         const matchId = `${curRndId.roundId}`;
-
         const roundBets = await redisRead.getDataFromRedis(matchId);
         if (!roundBets || !Object.keys(roundBets).length) return console.error("no bets found for roundId:", matchId);
 
         const roundResult: IRoundResult = gameLobby.getRoundResult();
-        console.log("ROUND_RESULT", JSON.stringify(roundResult))
         Object.keys(roundBets).forEach(userId => {
             let ttlWinAmt = 0
             if (roundResult.winner === "TIE") {
@@ -129,7 +121,6 @@ export const settlementHandler = async (io: Namespace) => {
             }
             const maxCo = Number(GS.GAME_SETTINGS.max_co) || GAME_SETTINGS.max_co;
             roundBets[userId]["winning_amount"] = ttlWinAmt > maxCo ? maxCo : ttlWinAmt;
-            console.log("ttl win amt", roundBets[userId]["winning_amount"]);
         })
 
         Object.keys(roundBets).forEach(async (userId) => {
@@ -171,14 +162,14 @@ export const settlementHandler = async (io: Namespace) => {
                 win_result: roundResult,
                 status: roundBets[userId]["winning_amount"] ? "WIN" : "LOSS"
             }
-            settlementlogger.info(stmtObj);
+            settlementlogger.info(JSON.stringify(stmtObj));
             await Settlements.create(stmtObj);
         });
 
         return await redisWrite.delDataFromRedis(matchId);
 
     } catch (error: any) {
-        failedSettlementLogger.error(error, error.message)
+        failedSettlementLogger.error(JSON.stringify(error));
         console.error("error during settlement", error.message);
         return io.emit("betError", { event: "settlement", message: "unable to process settlements", error: error.message })
     }
