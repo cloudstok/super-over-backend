@@ -85,16 +85,50 @@ export class InfiniteGameLobby {
 
     private generateRoundResults(): IRoundResult {
         const { teamA, a, teamB, b } = this.teamsInfo;
-        const { teamACards, teamBCards } = this.getTeamsCards();
+        let { teamACards, teamBCards } = this.getTeamsCards();
 
-        const teamAScore: number = this.calculateTotalRuns(teamACards);
-        const teamBScore: number = this.calculateTotalRuns(teamBCards);
-        const teamAWickets: number = this.calculateTotalWickets(teamACards);
-        const teamBWickets: number = this.calculateTotalWickets(teamBCards);
-        const winner = teamAScore === teamBScore ? "TIE" : (teamAScore > teamBScore ? a : b);
+        // Calculate full scores and wickets first
+        const fullTeamAScore = this.calculateTotalRuns(teamACards);
+        const fullTeamBScore = this.calculateTotalRuns(teamBCards);
 
-        return { roundId: this.roundId, a, b, teamA, teamB, teamACards, teamBCards, teamAScore, teamBScore, teamAWickets, teamBWickets, winner };
+        let winner: number | "TIE" = "TIE";
+        if (fullTeamAScore > fullTeamBScore) winner = a;
+        else if (fullTeamBScore > fullTeamAScore) winner = b;
+
+        // Only trim teamBCards if team B wins
+        if (fullTeamBScore > fullTeamAScore) {
+            let runSum = 0;
+            let cutIndex = teamBCards.length;
+
+            for (let i = 0; i < teamBCards.length; i++) {
+                const card = teamBCards[i];
+                if (card.card !== "K" && card.card !== "10" && typeof card.runs === "number") {
+                    runSum += card.runs;
+                }
+                if (runSum > fullTeamAScore) {
+                    cutIndex = i + 1;
+                    break;
+                }
+            }
+
+            // Trim only teamBCards
+            teamBCards = teamBCards.slice(0, cutIndex);
+        }
+
+        return {
+            roundId: this.roundId,
+            a, b, teamA, teamB,
+            teamACards,
+            teamBCards,
+            teamAScore: this.calculateTotalRuns(teamACards),
+            teamBScore: this.calculateTotalRuns(teamBCards),
+            teamAWickets: this.calculateTotalWickets(teamACards),
+            teamBWickets: this.calculateTotalWickets(teamBCards),
+            winner
+        };
     }
+
+
     private getTeams(): ITeamInfo {
         const set = new Set<number>();
         while ([...set].length < 2) {
