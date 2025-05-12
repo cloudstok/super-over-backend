@@ -21,39 +21,55 @@ apiRouter.get("/bet-history", async (req: any, res: any) => {
         if (!user_id || !operator_id) throw new Error("user_id and operator_id are required");
         if (limit) limit = Number(limit);
 
-
         const history = await Settlements.find(user_id, operator_id, limit);
 
         const transformedHistory = history.flatMap((entry: any) => {
             const betValues = entry.bet_values || {};
             const winResult = entry.win_result || {};
-            const winner = String(winResult.winner); // Match bet keys ("1", "6", etc.)
             const totalWinAmount = entry.win_amt || 0;
-            const matchId = entry.match_id;
+            const roundId = entry.match_id;
 
-            return Object.entries(betValues).map(([teamKey, stake]: any) => {
-                const isWinner = teamKey === winner;
-                const odds = isWinner ? +(totalWinAmount / stake).toFixed(2) : 0;
-                const profit = isWinner ? +(totalWinAmount - stake).toFixed(2) : 0;
-                const loss = isWinner ? 0 : stake;
-                const betOn =
-                    winResult.teamA && winResult.teamB
-                        ? winResult.teamA === teamKey
-                            ? winResult.teamA
-                            : winResult.teamB
-                        : teamKey;
+            const teamAName = winResult.teamA;
+            const teamBName = winResult.teamB;
+            const winnerCode = winResult.winner;
+            const winnerTeamName =
+                winnerCode === winResult.a ? teamAName :
+                    winnerCode === winResult.b ? teamBName :
+                        winnerCode === "TIE" ? "TIE" :
+                            "UNKNOWN";
 
-                return {
-                    round_id: matchId,
-                    bet_on: betOn,
-                    odds,
-                    stake,
-                    profit,
-                    loss
-                };
-            });
+            const totalWinningStake =
+                winnerTeamName !== "TIE" && betValues[winnerTeamName]
+                    ? betValues[winnerTeamName]
+                    : 0;
+
+            return Object.entries(betValues)
+                .filter(([_, stake]: any) => stake > 0)
+                .map(([teamKey, stake]: any) => {
+                    let odds = 0;
+                    let profit = 0;
+                    let loss = stake;
+
+                    if (winnerTeamName === "TIE") {
+                        odds = 1;
+                        profit = 0;
+                        loss = 0;
+                    } else if (teamKey === winnerTeamName) {
+                        odds = totalWinningStake > 0 ? +(totalWinAmount / totalWinningStake).toFixed(2) : 0;
+                        profit = +(stake * odds - stake).toFixed(2);
+                        loss = 0;
+                    }
+
+                    return {
+                        round_id: roundId,
+                        bet_on: teamKey,
+                        odds,
+                        stake,
+                        profit,
+                        loss
+                    };
+                });
         });
-
 
         return res.status(200).send({
             statusCode: 200,
