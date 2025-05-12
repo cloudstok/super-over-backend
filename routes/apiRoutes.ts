@@ -21,6 +21,7 @@ apiRouter.get("/bet-history", async (req: any, res: any) => {
         if (!user_id || !operator_id) throw new Error("user_id and operator_id are required");
         if (limit) limit = Number(limit);
 
+
         const history = await Settlements.find(user_id, operator_id, limit);
 
         const transformedHistory = history.flatMap((entry: any) => {
