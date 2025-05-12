@@ -139,8 +139,9 @@ export const settlementHandler = async (io: Namespace) => {
                 plInfo.bl += Number(roundBets[userId]["winning_amount"] || 0);
                 await redisWrite.setDataToRedis(plInfo.sid, plInfo);
                 io.to(plInfo.sid).emit("info", { urId: plInfo.urId, urNm: plInfo.urNm, bl: plInfo.bl, operatorId: plInfo.operatorId })
-                io.to(plInfo.sid).emit("message", { event: "settlement", winAmt: roundBets[userId]["winning_amount"] })
-            }
+                io.to(plInfo.sid).emit("message", { event: "settlement", winAmt: roundBets[userId]["winning_amount"], status: "WIN" })
+            } else io.to(roundBets[userId].sid).emit("message", { event: "settlement", winAmt: roundBets[userId]["winning_amount"], status: "LOSS" })
+
             let aBetAmt = roundBets[userId][roundResult.a];
             let bBetAmt = roundBets[userId][roundResult.b];
             let sumAB = Number(aBetAmt) + Number(bBetAmt);
