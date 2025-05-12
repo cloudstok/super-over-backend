@@ -40,6 +40,7 @@ export const placeBetHandler = async (io: Namespace, socket: Socket, roundId: st
             let amt = Number(betAmt);
             if (isNaN(tNo) || isNaN(amt) || tNo < 0 || tNo > 7 || amt % 10 !== 0) isInvalidPayload++;
             if (teamsInfo.a !== tNo && teamsInfo.b !== tNo) isInvalidPayload++;
+            if (tNo === 0 && amt === 0) return;
             if (userBet[tNo]) userBet[tNo] += amt;
             else userBet[tNo] = amt;
         })
