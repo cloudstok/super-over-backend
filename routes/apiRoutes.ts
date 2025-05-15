@@ -111,9 +111,7 @@ apiRouter.get("/match-history", async (req: any, res: any) => {
             team_b_score: winResult.teamBScore,
             team_a_wickets: winResult.teamAWickets,
             team_b_wickets: winResult.teamBWickets,
-            bet_time: history.created_at,
-            team_a_cards: winResult.teamACards,
-            team_b_cards: winResult.teamBCards
+            bet_time: history.created_at
         };
 
         // Dynamically include only the teams that the user has actually bet on
