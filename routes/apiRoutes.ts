@@ -90,13 +90,13 @@ apiRouter.get("/bet-history", async (req: any, res: any) => {
 apiRouter.get("/match-history", async (req: any, res: any) => {
     try {
         const gs = GS.GAME_SETTINGS as IGameSettings || GAME_SETTINGS;
-        const { user_id, operator_id, match_id } = req.query;
+        const { user_id, operator_id, lobby_id } = req.query;
 
-        if (!user_id || !operator_id || !match_id) {
-            throw new Error("user_id, match_id and operator_id are required");
+        if (!user_id || !operator_id || !lobby_id) {
+            throw new Error("user_id, lobby_id and operator_id are required");
         }
 
-        const history = await Settlements.findByMatchId(user_id, operator_id, match_id);
+        const history = await Settlements.findByMatchId(user_id, operator_id, lobby_id);
         const winResult = history.win_result;
 
         const finalData: any = {
