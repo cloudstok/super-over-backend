@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { loadConfig } from "../utilities/loadConfig";
+import { GS, loadConfig } from "../utilities/loadConfig";
 import type { IGameSettings } from "../interfaces";
 import { Settlements } from "../models/settlements";
+import { GAME_SETTINGS } from "../constants/constant";
 
 export const apiRouter = Router();
 
@@ -88,12 +89,58 @@ apiRouter.get("/bet-history", async (req: any, res: any) => {
 
 apiRouter.get("/match-history", async (req: any, res: any) => {
     try {
+        const gs = GS.GAME_SETTINGS as IGameSettings || GAME_SETTINGS;
         const { user_id, operator_id, match_id } = req.query;
-        if (!user_id || !operator_id || !match_id) throw new Error("user_id, match_id and operator_id are required")
+
+        if (!user_id || !operator_id || !match_id) {
+            throw new Error("user_id, match_id and operator_id are required");
+        }
+
         const history = await Settlements.findByMatchId(user_id, operator_id, match_id);
-        return res.status(200).send({ statusCode: 200, history, message: "match history fetched successfully" })
+        const winResult = history.win_result;
+
+        const finalData: any = {
+            lobby_id: history.match_id,
+            user_id: history.user_id,
+            operator_id: history.operator_id,
+            total_bet_amount: history.bet_amt,
+            winner: gs.teams[winResult.winner],
+            team_a: winResult.teamA,
+            team_b: winResult.teamB,
+            team_a_score: winResult.teamAScore,
+            team_b_score: winResult.teamBScore,
+            team_a_wickets: winResult.teamAWickets,
+            team_b_wickets: winResult.teamBWickets,
+            bet_time: history.created_at,
+            team_a_cards: winResult.teamACards,
+            team_b_cards: winResult.teamBCards
+        };
+
+        // Dynamically include only the teams that the user has actually bet on
+        let betIndex = 1;
+        for (const [team, amount] of Object.entries(history.bet_values)) {
+            if (amount && amount as number > 0) {
+                finalData[`Bet${betIndex}`] = {
+                    team: team,
+                    bet_amount: amount,
+                    status: history.status,
+                    win_amount: team === gs.teams[winResult.winner] ? history.win_amt : 0
+                };
+                betIndex++;
+            }
+        }
+
+        return res.status(200).send({
+            status: true,
+            data: finalData
+        });
     } catch (error: any) {
         console.error("error occured", error.message);
-        return res.status(500).send({ statusCode: 500, error: error.message, message: "unable to fetch match history" })
+        return res.status(500).send({
+            status: false,
+            error: error.message,
+            message: "unable to fetch match history"
+        });
     }
 });
+
