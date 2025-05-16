@@ -44,6 +44,8 @@ apiRouter.get("/bet-history", async (req: any, res: any) => {
                     ? betValues[winnerTeamName]
                     : 0;
 
+            const normalizeZero = (num: number) => (Object.is(num, -0) ? 0 : num);
+
             return Object.entries(betValues)
                 .filter(([_, stake]: any) => stake > 0)
                 .map(([teamKey, stake]: any) => {
@@ -64,10 +66,10 @@ apiRouter.get("/bet-history", async (req: any, res: any) => {
                     return {
                         round_id: roundId,
                         bet_on: teamKey,
-                        odds,
+                        odds: normalizeZero(odds),
                         stake,
-                        profit,
-                        loss
+                        profit: normalizeZero(profit),
+                        loss: normalizeZero(loss)
                     };
                 });
         });
