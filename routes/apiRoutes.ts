@@ -49,30 +49,33 @@ apiRouter.get("/bet-history", async (req: any, res: any) => {
             return Object.entries(betValues)
                 .filter(([_, stake]: any) => stake > 0)
                 .map(([teamKey, stake]: any) => {
-                    let odds = 0;
+                    let odds = winnerTeamName === "TIE" ? 1.00 : 1.98;
                     let profit = 0;
                     let loss = stake;
 
                     if (winnerTeamName === "TIE") {
-                        odds = 1;
                         profit = 0;
                         loss = 0;
                     } else if (teamKey === winnerTeamName) {
-                        odds = totalWinningStake > 0 ? +(totalWinAmount / totalWinningStake).toFixed(2) : 0;
                         profit = +(stake * odds - stake).toFixed(2);
                         loss = 0;
                     }
 
+                    // Normalize after all logic
+                    profit = + normalizeZero(profit);
+                    loss = + normalizeZero(loss);
+
                     return {
                         round_id: roundId,
                         bet_on: teamKey,
-                        odds: normalizeZero(odds),
+                        odds: odds.toFixed(2),
                         stake,
-                        profit: normalizeZero(profit),
-                        loss: normalizeZero(loss)
+                        profit,
+                        loss
                     };
                 });
         });
+
 
         return res.status(200).send({
             statusCode: 200,
