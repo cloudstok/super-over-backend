@@ -28,7 +28,7 @@ export class InfiniteGameLobby {
 
     async gameLoop(): Promise<any> {
 
-        this.roundId = Date.now();
+        this.roundId = 1745227259107;   // Date.now();
         this.teamsInfo = this.getTeams()
         this.setCurrentStatus(EStatus.ss, EStatusCode.ss);
         this.emitStatus();
@@ -128,7 +128,6 @@ export class InfiniteGameLobby {
         };
     }
 
-
     private getTeams(): ITeamInfo {
         const set = new Set<number>();
         while ([...set].length < 2) {
@@ -140,35 +139,27 @@ export class InfiniteGameLobby {
         const teamB: string = GS.GAME_SETTINGS.teams![b];
         return { teamA, a, teamB, b };
     }
-    private getCards(): number[] { return Array.from({ length: 6 }, () => Math.floor(Math.random() * Object.keys(GS.GAME_SETTINGS.cardInfo!).length)); }
-    private getTeamsCards(): ({ teamACards: ICardInfo[], teamBCards: ICardInfo[] }) {
-        const teamACards = this.getCards();
-        const teamBCards = this.getCards();
-        let wicketsCount = 0;
-        [teamBCards, teamACards].forEach(team => {
-            team.forEach((v, i) => {
-                if (v === 6 && wicketsCount > 2) {
-                    team[i] = Math.floor(Math.random() * 6)
-                }
-            });
-        });
-        let aCards: ICardInfo[] = [];
-        teamACards.forEach(e => aCards.push(GS.GAME_SETTINGS.cardInfo![e]));
-        let bCards: ICardInfo[] = [];
-        teamBCards.forEach(e => bCards.push(GS.GAME_SETTINGS.cardInfo![e]));
 
+    private getCardsUntilTwoKings(): ICardInfo[] {
+        const cards: ICardInfo[] = [];
         let kingCount = 0;
-        [aCards, bCards].forEach(cardsArr => {
-            cardsArr.forEach((card, idx) => {
-                if (card.card === "K") kingCount++;
-                if (kingCount >= 2) {
-                    cardsArr.splice(idx + 1, aCards.length)
-                }
-            })
-            kingCount = 0;
-        });
-        return { teamACards: aCards, teamBCards: bCards };
+        const cardPool = Object.values(GS.GAME_SETTINGS.cardInfo!);
+
+        while (kingCount < 2 && cards.length < 6) {
+            const card = cardPool[Math.floor(Math.random() * cardPool.length)];
+            cards.push(card);
+            if (card.card === "K") kingCount++;
+        }
+        return cards;
     }
+
+    private getTeamsCards(): { teamACards: ICardInfo[], teamBCards: ICardInfo[] } {
+        return {
+            teamACards: this.getCardsUntilTwoKings(),
+            teamBCards: this.getCardsUntilTwoKings()
+        };
+    }
+
     private calculateTotalRuns(cards: ICardInfo[]): number {
         let totalRuns: number = 0;
         cards.forEach(card => {
