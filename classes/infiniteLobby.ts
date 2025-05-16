@@ -28,7 +28,7 @@ export class InfiniteGameLobby {
 
     async gameLoop(): Promise<any> {
 
-        this.roundId = 1745227259107;   // Date.now();
+        this.roundId = Date.now();
         this.teamsInfo = this.getTeams()
         this.setCurrentStatus(EStatus.ss, EStatusCode.ss);
         this.emitStatus();
