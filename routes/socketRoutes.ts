@@ -17,7 +17,7 @@ export const socketRouter = async (io: Namespace, socket: Socket) => {
         const gameState = { ...gameLobby.getCurrentRoundId(), ...gameLobby.getCurrentStatus(), prevRoundResults: gameLobby.getPrevRoundResults(), teamInfo: gameLobby.getTeamInfo(), roundResult: gameLobby.getCurrentStatus().statusCode >= EStatusCode.sc ? gameLobby.getRoundResult() : {} }
         setTimeout(() => {
             socket.emit("message", { event: "game_state", ...gameState })
-            if (lastWin) socket.emit('lastWin', { lastWin: lastWin && typeof lastWin === "number" ? lastWin.toFixed(2) : "0.00" });
+            if (lastWin) socket.emit('lastWin', { lastWin });
         }, 100);
 
         socket.on("message", async (data: string) => {
