@@ -21,9 +21,9 @@ export class Settlements {
         return result;
     }
 
-    static async findById(id: number) {
-        const [rows]: any = await pool.query(`SELECT * FROM settlements WHERE id = ?`, [id]);
-        return rows[0] || null;
+    static async fetchLastWin(user_id: string, operator_id: string) {
+        const [rows]: any = await pool.query(`SELECT win_amt FROM settlements WHERE user_id = ? AND operator_id = ? AND win_amt > 0 ORDER BY created_at DESC LIMIT 1`, [user_id, operator_id]);
+        return rows[0] || {};
     }
 
     static async find(user_id: string, operator_id: string, limit = 10) {
@@ -33,6 +33,6 @@ export class Settlements {
 
     static async findByMatchId(user_id: string, operator_id: string, match_id: string) {
         const [rows]: any = await pool.query(`SELECT * FROM settlements WHERE match_id = ? AND user_id = ? AND operator_id = ?`, [match_id, user_id, operator_id]);
-        return rows[0] || null;
+        return rows[0] || {};
     }
 }
