@@ -22,7 +22,7 @@ export class Settlements {
     }
 
     static async fetchLastWin(user_id: string, operator_id: string) {
-        const [rows]: any = await pool.query(`SELECT win_amt FROM settlements WHERE user_id = ? AND operator_id = ? AND win_amt > 0 ORDER BY created_at DESC LIMIT 1`, [user_id, operator_id]);
+        const [rows]: any = await pool.query(`SELECT win_amt FROM settlements WHERE user_id = ? AND operator_id = ? ORDER BY created_at DESC LIMIT 1`, [user_id, operator_id]);
         return rows[0] || {};
     }
 
