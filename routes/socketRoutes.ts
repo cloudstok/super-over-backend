@@ -10,9 +10,10 @@ export const socketRouter = async (io: Namespace, socket: Socket) => {
     try {
         console.log("socket connected with id:", socket.id);
         const info: Info = await redisRead.getDataFromRedis(socket.id);
-        let lastWin = 0;
+        let lastWin: any;
         if (info) {
             lastWin = await Settlements.fetchLastWin(info.urId, info.operatorId);
+            lastWin.win_amt = lastWin.win_amt ? lastWin.win_amt.toFixed(2) : "0.00";
         }
         const gameState = { ...gameLobby.getCurrentRoundId(), ...gameLobby.getCurrentStatus(), prevRoundResults: gameLobby.getPrevRoundResults(), teamInfo: gameLobby.getTeamInfo(), roundResult: gameLobby.getCurrentStatus().statusCode >= EStatusCode.sc ? gameLobby.getRoundResult() : {} }
         setTimeout(() => {
