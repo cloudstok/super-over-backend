@@ -7,7 +7,7 @@ const enum EStatus { ss = "STARTED", pb = "PLACE_BET", cb = "COLLECT_BET", sc = 
 export const enum EStatusCode { ss = 1, pb = 2, cb = 3, sc = 4, ed = 5 };
 const enum EStatusInterval { ss = 2, pb = 15, cb = 4, sc = 15, ed = 5 };
 
-export class InfiniteGameLobby {
+export class IGLobby {
     private io: Namespace;
     private status!: EStatus;
     private statusCode!: EStatusCode;
@@ -15,6 +15,7 @@ export class InfiniteGameLobby {
     private teamsInfo!: ITeamInfo;
     private roundResult!: IRoundResult;
     private prevRoundResults: IRoundResult[] = [];
+    static roundBets: Record<string, any> = {};
 
     constructor(io: Namespace) {
         this.io = io;
@@ -55,6 +56,7 @@ export class InfiniteGameLobby {
         await settlementHandler(this.io)
         await this.sleepWithTimer(EStatusInterval.ed);
 
+        IGLobby.roundBets = {};
         return this.gameLoop();
     }
 

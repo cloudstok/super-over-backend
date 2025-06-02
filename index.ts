@@ -7,7 +7,7 @@ import { createTables } from "./db/dbConnection"
 import { createLogger } from "./utilities/logger";
 import { checkAuth } from "./middlewares/socketAuth";
 import { socketRouter } from "./routes/socketRoutes";
-import { InfiniteGameLobby } from "./classes/infiniteLobby";
+import { IGLobby } from "./classes/infiniteLobby";
 import { config } from "dotenv";
 import { initQueue } from "./utilities/amqp";
 import { loadConfig } from "./utilities/loadConfig";
@@ -29,7 +29,7 @@ const serverIo = io.of("/")
     .use((socket: Socket, next: Function) => checkAuth(socket, next))
     .on("connection", (socket: Socket) => socketRouter(serverIo, socket));
 
-export const gameLobby: InfiniteGameLobby = new InfiniteGameLobby(serverIo);
+export const gameLobby: IGLobby = new IGLobby(serverIo);
 
 app.use(cors({ origin: "*" }));
 app.get("/", (req: any, res: any) => res.status(200).send({ message: "Super-Over game backend says HI...✋", statusCode: 200 }))

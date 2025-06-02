@@ -10,6 +10,7 @@ import { Settlements } from "../models/settlements";
 import { failedBetLogger, failedSettlementLogger, logEventAndEmitResponse } from "../utilities/herlperFunc";
 import { GAME_SETTINGS } from "../constants/constant";
 import { createLogger } from "../utilities/logger";
+import { IGLobby } from "../classes/infiniteLobby";
 
 const betlogger = createLogger("bets", "jsonl")
 const settlementlogger = createLogger("settlements", "jsonl")
@@ -68,11 +69,9 @@ export const placeBetHandler = async (io: Namespace, socket: Socket, roundId: st
         info.bl -= totalBetAmount;
         await redisWrite.setDataToRedis(socket.id, info);
 
-        let roundBets = await redisRead.getDataFromRedis(matchId);
-        if (!roundBets) roundBets = {};
+        if (!IGLobby.roundBets) IGLobby.roundBets = {};
+        IGLobby.roundBets[info.urId] = { ...dbtTxn, ...info, ...userBet };
 
-        roundBets[info.urId] = { ...dbtTxn, ...info, ...userBet };
-        await redisWrite.setDataToRedis(matchId, roundBets);
         const userBetValues: Record<string, number> = {};
         Object.keys(userBet).forEach((tno: string) => {
             const teamName = GS.GAME_SETTINGS.teams?.[Number(tno)];
@@ -104,17 +103,19 @@ export const settlementHandler = async (io: Namespace) => {
     try {
         const curRndId = gameLobby.getCurrentRoundId();
         const matchId = `${curRndId.roundId}`;
-        const roundBets = await redisRead.getDataFromRedis(matchId);
+        const roundBets = IGLobby.roundBets;
         if (!roundBets || !Object.keys(roundBets).length) return console.error("no bets found for roundId:", matchId);
 
         const roundResult: IRoundResult = gameLobby.getRoundResult();
         Object.keys(roundBets).forEach(userId => {
-            let ttlWinAmt = 0
+            let ttlWinAmt = 0;
+            let isTie = false;
             if (roundResult.winner === "TIE") {
                 const aBetAmt = Number(roundBets[userId][roundResult.a]) || 0;
                 const bBetAmt = Number(roundBets[userId][roundResult.b]) || 0;
                 const tie_mult = GS.GAME_SETTINGS.tie_mult!;
                 ttlWinAmt += (aBetAmt + bBetAmt) * tie_mult;
+                isTie = true;
             }
             else if (roundBets[userId][roundResult.winner]) {
                 let win_mult = GS.GAME_SETTINGS.win_mult!;
@@ -122,6 +123,7 @@ export const settlementHandler = async (io: Namespace) => {
             }
             const maxCo = Number(GS.GAME_SETTINGS.max_co) || GAME_SETTINGS.max_co;
             roundBets[userId]["winning_amount"] = ttlWinAmt > maxCo ? maxCo : ttlWinAmt;
+            roundBets[userId]["isTie"] = isTie;
         })
 
         Object.keys(roundBets).forEach(async (userId) => {
@@ -133,7 +135,7 @@ export const settlementHandler = async (io: Namespace) => {
                     token: roundBets[userId]?.token
                 }
                 const cdtRes = await updateBalanceFromAccount(roundBets[userId], "CREDIT", playerDetails);
-                if (!cdtRes) console.error("credit txn failed for user_id", userId);
+                if (!cdtRes) settlementlogger.error(`credit txn failed for user_id ${userId} in match ${matchId}`);
 
                 let plInfo: Info = await redisRead.getDataFromRedis(roundBets[userId].sid);
                 plInfo.bl += Number(roundBets[userId]["winning_amount"] || 0);
@@ -155,6 +157,11 @@ export const settlementHandler = async (io: Namespace) => {
                 [teamB ?? 'unknown_team_b']: bBetAmt || 0,
             };
 
+            let status = "";
+            if (roundBets[userId]["winning_amount"] && roundBets[userId]["isTie"]) status = "TIE";
+            else if (roundBets[userId]["winning_amount"] && !roundBets[userId]["isTie"]) status = "WIN";
+            else status = "LOSS";
+
             const stmtObj = {
                 user_id: userId,
                 match_id: matchId,
@@ -163,13 +170,13 @@ export const settlementHandler = async (io: Namespace) => {
                 win_amt: Number(roundBets[userId]["winning_amount"] || 0),
                 bet_values: betValues,
                 win_result: roundResult,
-                status: roundBets[userId]["winning_amount"] ? "WIN" : "LOSS"
+                status: status
             }
             settlementlogger.info(JSON.stringify(stmtObj));
             await Settlements.create(stmtObj);
         });
 
-        return await redisWrite.delDataFromRedis(matchId);
+        return;
 
     } catch (error: any) {
         failedSettlementLogger.error(JSON.stringify(error));
