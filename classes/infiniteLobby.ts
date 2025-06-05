@@ -62,7 +62,7 @@ export class IGLobby {
 
     private mySleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     private async sleepWithTimer(seconds: number): Promise<void> {
-        for (let i = seconds; i > 0; i--) {
+        for (let i = seconds; i >= 0; i--) {
             this.emitIntervalSeconds(i);
             await this.mySleep(1000);
         }
