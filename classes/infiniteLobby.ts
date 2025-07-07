@@ -6,6 +6,8 @@ import { settlementHandler } from "../services/handlers";
 const enum EStatus { ss = "STARTED", pb = "PLACE_BET", cb = "COLLECT_BET", sc = "SHOW_CARDS", ed = "ENDED" };
 export const enum EStatusCode { ss = 1, pb = 2, cb = 3, sc = 4, ed = 5 };
 const enum EStatusInterval { ss = 2, pb = 15, cb = 4, sc = 15, ed = 5 };
+// const enum EStatusInterval { ss = 0, pb = 0, cb = 0, sc = 15, ed = 2 };
+
 
 export class IGLobby {
     private io: Namespace;
@@ -39,6 +41,7 @@ export class IGLobby {
         this.setCurrentStatus(EStatus.pb, EStatusCode.pb);
         this.emitStatus();
         this.roundResult = this.generateRoundResults();
+        console.log(this.roundResult);
         this.storeRoundResults();
         await this.sleepWithTimer(EStatusInterval.pb);
 
@@ -89,6 +92,14 @@ export class IGLobby {
         const { teamA, a, teamB, b } = this.teamsInfo;
         let { teamACards, teamBCards } = this.getTeamsCards();
 
+        // introduce unpredictability by 20%-30%
+        const factor = Math.random();
+        if (factor < 0.3) {
+            // Swap teams' cards with a 20%-30% chance
+            console.log("flipping teams' cards");
+            [teamACards, teamBCards] = [teamBCards, teamACards];
+        }
+
         // Calculate full scores and wickets first
         const fullTeamAScore = this.calculateTotalRuns(teamACards);
         const fullTeamBScore = this.calculateTotalRuns(teamBCards);
@@ -119,13 +130,13 @@ export class IGLobby {
 
         return {
             roundId: this.roundId,
-            a, b, teamA, teamB,
             teamACards,
             teamBCards,
             teamAScore: this.calculateTotalRuns(teamACards),
             teamBScore: this.calculateTotalRuns(teamBCards),
             teamAWickets: this.calculateTotalWickets(teamACards),
             teamBWickets: this.calculateTotalWickets(teamBCards),
+            a, b, teamA, teamB,
             winner
         };
     }
@@ -142,17 +153,27 @@ export class IGLobby {
         return { teamA, a, teamB, b };
     }
 
-    private getCardsUntilTwoKings(): ICardInfo[] {
-        const cards: ICardInfo[] = [];
-        let kingCount = 0;
-        const cardPool = Object.values(GS.GAME_SETTINGS.cardInfo!);
-
-        while (kingCount < 2 && cards.length < 6) {
-            const card = cardPool[Math.floor(Math.random() * cardPool.length)];
-            cards.push(card);
-            if (card.card === "K") kingCount++;
+    private getShuffledCards(): ICardInfo[] {
+        let cardPool = Object.values(GS.GAME_SETTINGS.cardInfo!);
+        for (let i = cardPool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cardPool[i], cardPool[j]] = [cardPool[j], cardPool[i]]; // swap
         }
-        return cards;
+        return cardPool;
+    }
+
+    private getCardsUntilTwoKings(): ICardInfo[] {
+        const cards: Set<ICardInfo> = new Set<ICardInfo>();
+        let kingCount = 0;
+        const cardPool = this.getShuffledCards();
+        let count = 0;
+        while (kingCount < 2 && cards.size < 6) {
+            const card = cardPool[count];
+            cards.add(card);
+            if (card.card === "K") kingCount++;
+            count++;
+        }
+        return [...cards];
     }
 
     private getTeamsCards(): { teamACards: ICardInfo[], teamBCards: ICardInfo[] } {
@@ -177,3 +198,9 @@ export class IGLobby {
         return ttlWickets;
     }
 }
+
+// b a a b b a a a a b a a t a b b a b a b b b a a a a b b a t b b a b a a b b a b a a b a 
+// b a a a a b b b a b a b b a b a a a a a b b a a b b b a a b a b b a b b a a b b b b a b
+
+
+// abaaabbbabaaabbbabaaabbabbabbbbaabtaabbbabbbababbbtaaababbaaaaaaabbbaaabbaabbbbtbabbbababbaabaaab
