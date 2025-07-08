@@ -49,15 +49,16 @@ apiRouter.get("/bet-history", async (req: any, res: any) => {
             return Object.entries(betValues)
                 .filter(([_, stake]: any) => stake > 0)
                 .map(([teamKey, stake]: any) => {
-                    let odds = winnerTeamName === "TIE" ? 1.00 : 1.98;
+                    let odds = winnerTeamName === "TIE" ? 0.5 : 1.98;
                     let profit = 0;
                     let loss = stake;
 
-                    if (winnerTeamName === "TIE") {
-                        profit = 0;
-                        loss = 0;
-                    } else if (teamKey === winnerTeamName) {
+                    if (teamKey === winnerTeamName) {
                         profit = +(stake * odds - stake).toFixed(2);
+                        loss = 0;
+                    } else if (winnerTeamName === "TIE") {
+                        // If it's a tie, the profit is half the stake
+                        profit = +(stake * 0.5).toFixed(2);
                         loss = 0;
                     }
 
