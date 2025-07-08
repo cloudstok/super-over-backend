@@ -40,8 +40,9 @@ export class IGLobby {
 
         this.setCurrentStatus(EStatus.pb, EStatusCode.pb);
         this.emitStatus();
+
         this.roundResult = this.generateRoundResults();
-        console.log(this.roundResult);
+
         this.storeRoundResults();
         await this.sleepWithTimer(EStatusInterval.pb);
 
