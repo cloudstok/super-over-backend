@@ -17,7 +17,8 @@ export const initRounds = async (io: Server): Promise<void> => {
 
 const initLobby = async (io: Server): Promise<void> => {
 
-  const lobbyId = Date.now();
+  // const lobbyId = Date.now();
+  const lobbyId = 1751966983197; // For testing purposes, using a fixed lobbyId
   const recurLobbyData: { lobbyId: number; status: number } = {
     lobbyId,
     status: 0,
