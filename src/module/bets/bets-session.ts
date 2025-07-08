@@ -6,6 +6,7 @@ import { getBetResult, getUserIP, logEventAndEmitResponse } from '../../utilitie
 import { createLogger } from '../../utilities/logger';
 import { Server, Socket } from 'socket.io';
 import { read } from '../../utilities/db-connection';
+import { GameResult } from '../../interface';
 const logger = createLogger('Bets', 'jsonl');
 const settlBetLogger = createLogger('Settlement', 'jsonl');
 
@@ -15,9 +16,13 @@ interface BetData {
 }
 
 interface RoundResult {
-    1: string,
-    2: string,
-    winner: number
+    cardsA: [],
+    cardsB: [],
+    pointsA: 0,
+    pointsB: 0,
+    wicketA: 0,
+    wicketB: 0,
+    winner: 3
 }
 
 type BetResult = {
@@ -137,7 +142,7 @@ export const placeBet = async (socket: Socket, betData: [string, string]) => {
     return socket.emit("bet", { message: "Bet Placed successfully" });
 };
 
-export const settleBet = async (io: Server, result: RoundResult, lobbyId: number): Promise<void> => {
+export const settleBet = async (io: Server, result: GameResult, lobbyId: number): Promise<void> => {
     try {
 
         if (roundBets.length > 0) {

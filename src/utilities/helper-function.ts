@@ -1,6 +1,7 @@
 import { appConfig } from './app-config';
 import { createLogger } from './logger';
 import { Socket } from 'socket.io';
+import { GameResult } from '../interface';
 
 const failedBetLogger = createLogger('failedBets', 'jsonl');
 
@@ -26,39 +27,89 @@ export const getUserIP = (socket: any): string => {
   return socket.handshake.address || "";
 };
 
+const SUITS = ['S', 'H', 'D', 'C'];
+const RANKS = ['1', '2', '3', '4', '6', '10', '13'];
+const TEAMS = [
+  'India', 'Australia',
+  'England', 'New Zealand',
+  'Pakistan', 'South Africa',
+  'Sri Lanka', 'Bangladesh',
+  'Afghanistan', 'West Indies',
+  'Ireland', 'Zimbabwe',
+  'Nepal', 'Netherlands',
+  'Scotland'
+]
 
-function getRandomNumber(): number {
-  return Math.floor(Math.random() * 13) + 1;
+type Suit = typeof SUITS[number];
+type Rank = typeof RANKS[number];
+
+interface Card {
+  rank: Rank;
+  suit: Suit;
 }
 
-
-
-interface GameResult {
-  1: string,
-  2: string,
-  winner: 1 | 2 | 3
+function createDeck(): Card[] {
+  const deck: Card[] = [];
+  const randomIndex = Math.floor(Math.random() * SUITS.length);
+  SUITS.push(SUITS[randomIndex]);
+  for (const suit of SUITS) {
+    for (const rank of RANKS) {
+      deck.push({ rank, suit });
+    }
+  }
+  return deck;
 }
 
-function concatRandomSuit (val: number): string {
-  const suits = ['D', 'H', 'C', 'S'];
-  return `${val}-${suits[Math.floor(Math.random() * 4)]}`
+function shuffle(deck: Card[]): Card[] {
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck;
 }
+
 
 export const getResult = (): GameResult => {
 
+  const teamA: string = TEAMS[Math.floor(Math.random() * TEAMS.length)];
+  let teamB: string = TEAMS[Math.floor(Math.random() * TEAMS.length)];
+  while (teamA == teamB) {
+    teamB = TEAMS[Math.floor(Math.random() * TEAMS.length)];
+  }
+  const deck = shuffle(createDeck());
   const result: GameResult = {
-    1: '',
-    2: '',
-    winner: 1
+    teamA,
+    teamB,
+    cardsA: [],
+    cardsB: [],
+    pointsA: 0,
+    pointsB: 0,
+    wicketA: 0,
+    wicketB: 0,
+    winner: 3
   };
 
-  const batsman: number = getRandomNumber();
-  const bowler: number = getRandomNumber();
-  result[1] = concatRandomSuit(batsman);
-  result[2] = concatRandomSuit(bowler);
-  if (batsman > bowler) result['winner'] = 1;
-  else if (batsman < bowler) result['winner'] = 2;
-  else result['winner'] = 3;
+  while (result.cardsA.length < 6 && result.wicketA < 2) {
+    const card = deck.pop();
+    if (card) {
+      result.cardsA.push(`${card.suit}${card.rank}`);
+      result.pointsA += !['13', '10'].includes(card.rank) ? Number(card.rank) : 0;
+      if (card.rank == '13') result.wicketA += 1;
+    }
+  };
+
+  while (result.pointsA > result.pointsB && (result.wicketB < 2 && result.cardsB.length < 6)) {
+    const card = deck.pop();
+    if (card) {
+      result.cardsB.push(`${card.suit}${card.rank}`);
+      result.pointsB += !['13', '10'].includes(card.rank) ? Number(card.rank) : 0;
+      if (card.rank == '13') result.wicketB += 1;
+    }
+  };
+
+  if (result.pointsA < result.pointsB) result.winner = 2;
+  else if (result.pointsB < result.pointsA) result.winner = 1;
+  else result.winner = 3;
   return result;
 };
 
@@ -71,12 +122,12 @@ type BetResult = {
 };
 
 
-export const getBetResult = (betAmount: number, chip: number, result: number): BetResult => {
+export const getBetResult = (betAmount: number, chip: number, result: number | null): BetResult => {
   const resultData: BetResult = {
     chip,
     betAmount,
     winAmount: 0,
-    mult: (chip === 1 || chip === 2) ? 1.98 : 11,
+    mult: (chip === 1 || chip === 2) ? 1.98 : 0.5,
     status: 'loss'
   };
 

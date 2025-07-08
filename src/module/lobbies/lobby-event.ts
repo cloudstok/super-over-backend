@@ -4,6 +4,7 @@ import { createLogger } from '../../utilities/logger';
 import { setCurrentLobby } from '../bets/bets-session';
 import { getResult } from '../../utilities/helper-function';
 import { settleBet } from '../bets/bets-session';
+import { GameResult } from '../../interface';
 
 const logger = createLogger('lobbies', 'jsonl');
 
@@ -17,8 +18,7 @@ export const initRounds = async (io: Server): Promise<void> => {
 
 const initLobby = async (io: Server): Promise<void> => {
 
-  // const lobbyId = Date.now();
-  const lobbyId = 1751966983197; // For testing purposes, using a fixed lobbyId
+  const lobbyId = Date.now();
   const recurLobbyData: { lobbyId: number; status: number } = {
     lobbyId,
     status: 0,
@@ -27,7 +27,7 @@ const initLobby = async (io: Server): Promise<void> => {
   setCurrentLobby(recurLobbyData);
 
   const start_delay = 15;
-  const result = getResult();
+  const result: GameResult = getResult();
   const end_delay = 5;
 
   for (let x = start_delay; x >= 0; x--) {
@@ -43,9 +43,41 @@ const initLobby = async (io: Server): Promise<void> => {
 
   recurLobbyData.status = 2;
   setCurrentLobby(recurLobbyData);
-  io.emit('cards', `${lobbyId}:${JSON.stringify(result)}:RESULT`);
+  const dynamicResult: GameResult = {
+    teamA: result.teamA,
+    teamB: '',
+    cardsA: [],
+    cardsB: [],
+    pointsA: 0,
+    pointsB: 0,
+    wicketA: 0,
+    wicketB: 0,
+    winner: null
+  };
 
-  await sleep(6000);
+  for (let card of result.cardsA) {
+    dynamicResult.cardsA.push(card);
+    const point = Number(card.slice(1));
+    dynamicResult.pointsA += point == 10 || point == 13 ? 0 : point;
+    if (point == 13) dynamicResult.wicketA += 1;
+    io.emit('cards', `${lobbyId}:${JSON.stringify(dynamicResult)}:RESULT`);
+    await sleep(1000);
+  };
+
+  for (let card of result.cardsB) {
+    dynamicResult.teamB = result.teamB;
+    dynamicResult.cardsB.push(card);
+    const point = Number(card.slice(1));
+    dynamicResult.pointsB += point == 10 || point == 13 ? 0 : point;
+    if (point == 13) dynamicResult.wicketB += 1;
+    io.emit('cards', `${lobbyId}:${JSON.stringify(dynamicResult)}:RESULT`);
+    await sleep(1000);
+  };
+
+  dynamicResult.winner = result.winner;
+  io.emit('cards', `${lobbyId}:${JSON.stringify(dynamicResult)}:RESULT`);
+  await sleep(1000);
+
   await settleBet(io, result, lobbyId);
 
   recurLobbyData.status = 3;
