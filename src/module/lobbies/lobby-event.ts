@@ -19,15 +19,18 @@ export const initRounds = async (io: Server): Promise<void> => {
 const initLobby = async (io: Server): Promise<void> => {
 
   const lobbyId = Date.now();
-  const recurLobbyData: { lobbyId: number; status: number } = {
+  const result: GameResult = getResult();
+  const recurLobbyData: { lobbyId: number; status: number, teamA: string, teamB: string } = {
     lobbyId,
     status: 0,
+    teamA: result.teamA,
+    teamB: result.teamB,
   };
+  io.emit('currentLobbyState', JSON.stringify(recurLobbyData));
 
   setCurrentLobby(recurLobbyData);
 
   const start_delay = 15;
-  const result: GameResult = getResult();
   const end_delay = 5;
 
   for (let x = start_delay; x >= 0; x--) {

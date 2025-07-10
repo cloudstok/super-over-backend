@@ -3,7 +3,7 @@ import { getUserDataFromSource } from './module/players/player-event';
 import { eventRouter } from './router/event-router';
 import { messageRouter } from './router/message-router';
 import { setCache, deleteCache } from './utilities/redis-connection';
-import { getHistory } from './module/bets/bets-session';
+import { getCurrentLobbyState, getHistory } from './module/bets/bets-session';
 
 
 export const initSocket = (io: Server): void => {
@@ -37,8 +37,9 @@ export const initSocket = (io: Server): void => {
     );
 
     await setCache(`PL:${socket.id}`, JSON.stringify({ ...userData, socketId: socket.id }), 3600);
+    await getHistory(socket, userData.userId, userData.operatorId);
+    getCurrentLobbyState(io);
 
-    await getHistory(socket, userData.userId, userData.operatorId);    
     messageRouter(io, socket);
 
     socket.on('disconnect', async () => {

@@ -69,6 +69,7 @@ function shuffle(deck: Card[]): Card[] {
 }
 
 
+
 export const getResult = (): GameResult => {
 
   const teamA: string = TEAMS[Math.floor(Math.random() * TEAMS.length)];
@@ -127,11 +128,15 @@ export const getBetResult = (betAmount: number, chip: number, result: number | n
     chip,
     betAmount,
     winAmount: 0,
-    mult: (chip === 1 || chip === 2) ? 1.98 : 0.5,
+    mult: result == 3 ? 0.5 : 1.98,
     status: 'loss'
   };
 
-  if (chip === result) {
+  if (result == 3) {
+    resultData.mult = 0.5;
+    resultData.status = 'win';
+    resultData.winAmount = Math.min(betAmount * resultData.mult, appConfig.maxCashoutAmount);
+  } else if (chip === result) {
     resultData.status = 'win';
     resultData.winAmount = Math.min(betAmount * resultData.mult, appConfig.maxCashoutAmount);
   }

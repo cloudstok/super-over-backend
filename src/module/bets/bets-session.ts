@@ -48,14 +48,25 @@ interface BetObject {
 interface LobbyData {
     lobbyId: number;
     status: number;
+    teamA: string;
+    teamB: string;
 }
 
-let lobbyData: LobbyData = { lobbyId: 0, status: 0 };
+let lobbyData: LobbyData = { lobbyId: 0, status: 0, teamA: "", teamB: "" };
 let roundBets: BetObject[] = [];
 
 export const setCurrentLobby = (data: LobbyData) => {
     lobbyData = data;
 };
+
+export const getCurrentLobbyState = (io: Server) => {
+    return io.emit('currentLobbyState', JSON.stringify({
+        lobbyId: lobbyData.lobbyId,
+        status: lobbyData.status,
+        teamA: lobbyData.teamA,
+        teamB: lobbyData.teamB,
+    }));
+}
 
 export const placeBet = async (socket: Socket, betData: [string, string]) => {
     const playerDetails = await getCache(`PL:${socket.id}`);
@@ -139,7 +150,7 @@ export const placeBet = async (socket: Socket, betData: [string, string]) => {
         balance: parsedPlayerDetails.balance
     });
 
-    return socket.emit("bet", { message: "Bet Placed successfully" });
+    return socket.emit("bet", { message: "Bet Placed Successfully" });
 };
 
 export const settleBet = async (io: Server, result: GameResult, lobbyId: number): Promise<void> => {
@@ -161,7 +172,7 @@ export const settleBet = async (io: Server, result: GameResult, lobbyId: number)
                     const roundResult = getBetResult(betAmount, chip, result.winner);
                     betResults.push(roundResult);
                     if (roundResult.mult > 0) {
-                        totalMultiplier += roundResult.status == 'win' ? roundResult.mult : 0.00;
+                        totalMultiplier += roundResult.status == 'win' || result.winner == 3 ? roundResult.mult : 0;
                         finalAmount += roundResult.winAmount;
                     }
                 });
@@ -197,7 +208,7 @@ export const settleBet = async (io: Server, result: GameResult, lobbyId: number)
                         }, 100);
                     }
 
-                    io.to(socket_id).emit('settlement', { message: `You won ${winAmount}`, mywinningAmount: winAmount, status: 'WIN', roundResult: result, betResults, lobby_id });
+                    io.to(socket_id).emit('settlement', { message: `You Won ${winAmount}`, mywinningAmount: winAmount, status: 'WIN', roundResult: result, betResults, lobby_id });
                 } else {
                     io.to(socket_id).emit('settlement', { message: `You loss ${totalBetAmount}`, lossAmount: totalBetAmount, status: 'LOSS', roundResult: result, betResults, lobby_id });
                 }
