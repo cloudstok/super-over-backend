@@ -48,10 +48,20 @@ interface Card {
   suit: Suit;
 }
 
+// function createDeck(): Card[] {
+//   const deck: Card[] = [];
+//   const randomIndex = Math.floor(Math.random() * SUITS.length);
+//   SUITS.push(SUITS[randomIndex]);
+//   for (const suit of SUITS) {
+//     for (const rank of RANKS) {
+//       deck.push({ rank, suit });
+//     }
+//   }
+//   return deck;
+// }
+
 function createDeck(): Card[] {
   const deck: Card[] = [];
-  const randomIndex = Math.floor(Math.random() * SUITS.length);
-  SUITS.push(SUITS[randomIndex]);
   for (const suit of SUITS) {
     for (const rank of RANKS) {
       deck.push({ rank, suit });
@@ -59,6 +69,7 @@ function createDeck(): Card[] {
   }
   return deck;
 }
+
 
 function shuffle(deck: Card[]): Card[] {
   for (let i = deck.length - 1; i > 0; i--) {
