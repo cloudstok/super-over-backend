@@ -100,7 +100,7 @@ export const getResult = (): GameResult => {
     }
   };
 
-  while (result.pointsA > result.pointsB && (result.wicketB < 2 && result.cardsB.length < 6)) {
+  while (result.pointsA >= result.pointsB && (result.wicketB < 2 && result.cardsB.length < 6)) {
     const card = deck.pop();
     if (card) {
       result.cardsB.push(`${card.suit}${card.rank}`);
