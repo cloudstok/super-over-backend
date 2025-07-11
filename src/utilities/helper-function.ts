@@ -48,20 +48,10 @@ interface Card {
   suit: Suit;
 }
 
-// function createDeck(): Card[] {
-//   const deck: Card[] = [];
-//   const randomIndex = Math.floor(Math.random() * SUITS.length);
-//   SUITS.push(SUITS[randomIndex]);
-//   for (const suit of SUITS) {
-//     for (const rank of RANKS) {
-//       deck.push({ rank, suit });
-//     }
-//   }
-//   return deck;
-// }
-
 function createDeck(): Card[] {
   const deck: Card[] = [];
+  const randomIndex = Math.floor(Math.random() * SUITS.length);
+  SUITS.push(SUITS[randomIndex]);
   for (const suit of SUITS) {
     for (const rank of RANKS) {
       deck.push({ rank, suit });
@@ -104,6 +94,7 @@ export const getResult = (): GameResult => {
   while (result.cardsA.length < 6 && result.wicketA < 2) {
     const card = deck.pop();
     if (card) {
+      if (result.cardsA.includes(`${card.suit}${card.rank}`)) continue; // Skip if card already exists
       result.cardsA.push(`${card.suit}${card.rank}`);
       result.pointsA += !['13', '10'].includes(card.rank) ? Number(card.rank) : 0;
       if (card.rank == '13') result.wicketA += 1;
@@ -113,6 +104,7 @@ export const getResult = (): GameResult => {
   while (result.pointsA > result.pointsB && (result.wicketB < 2 && result.cardsB.length < 6)) {
     const card = deck.pop();
     if (card) {
+      if (result.cardsA.includes(`${card.suit}${card.rank}`)) continue; // Skip if card already exists
       result.cardsB.push(`${card.suit}${card.rank}`);
       result.pointsB += !['13', '10'].includes(card.rank) ? Number(card.rank) : 0;
       if (card.rank == '13') result.wicketB += 1;
