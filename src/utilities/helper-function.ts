@@ -27,7 +27,7 @@ export const getUserIP = (socket: any): string => {
   return socket.handshake.address || "";
 };
 
-const SUITS = ['S', 'H', 'D', 'C'];
+let SUITS = ['S', 'H', 'D', 'C'];
 const RANKS = ['1', '2', '3', '4', '6', '10', '13'];
 const TEAMS = [
   'India', 'Australia',
@@ -57,6 +57,7 @@ function createDeck(): Card[] {
       deck.push({ rank, suit });
     }
   }
+  SUITS = ['S', 'H', 'D', 'C'];
   return deck;
 }
 
